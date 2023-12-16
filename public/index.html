@@ -142,7 +142,7 @@
     <ul id="tableList" style="width: 10%;"></ul>
     <div id="tableDetails" class="tDetails"></div>
     <div id="tableForm" class="form-popup">
-        <form class="modal-content container">
+        <form action="/insert-data/:tablename" method="post" class="modal-content container">
         <h3>Table Data</h3>
         <input />
         <div id="fieldNames"></div>
@@ -215,7 +215,7 @@
                             });
                     }
 
-                    function showTableForm (tableName){
+                    /*function showTableForm (tableName){
                         fetch(`/insert-details/${tableName}`)
                             .then((response) => response.json())
                             .then((columns) => {
@@ -229,7 +229,7 @@
                                                     
                                 tableDetails.innerHTML = detailsHTML;
                             });
-                    }
+                    }*/
                 });
 
         })

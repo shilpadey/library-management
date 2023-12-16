@@ -82,6 +82,37 @@ app.get('/table-details/:tableName', (req, res) => {
   });
 });
 
+app.post('/insert-data/:tableName', async (req, res) => {
+  try {
+      const tableName = req.params.tableName;
+      const { data } = req.body;
+
+      const connection = await db.getConnection();
+      await connection.beginTransaction();
+
+      try {
+          // Insert data into the table
+          await connection.query(`INSERT INTO ${tableName} VALUES (?)`, [data]);
+
+          // Commit the transaction
+          await connection.commit();
+
+          console.log('Data inserted into', tableName);
+          res.send('Data inserted successfully');
+      } catch (err) {
+          // Rollback the transaction in case of an error
+          await connection.rollback();
+          throw err;
+      } finally {
+          connection.release();
+      }
+  } catch (err) {
+      console.error('Error inserting data:', err);
+      res.send('Error inserting data');
+  }
+});
+
+
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
