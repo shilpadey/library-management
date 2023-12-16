@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=D, initial-scale=1.0">
+    <title>DATABASE TABLE</title>
+    <style>
+        .open-button {
+            background-color: #555;
+            color: white;
+            padding: 16px 20px;
+            border: none;
+            cursor: pointer;
+            opacity: 0.8;
+            position: fixed;
+            bottom: 23px;
+            right: 28px;
+            width: 280px;
+        }
+        .form-popup {
+            display: none;
+            position: absolute;
+            top: 50px;
+            border: 3px solid #f7f1f1;
+            z-index: 1;
+            margin-left: 150px;
+
+        }
+
+        .form-container {
+            max-width: 500px;
+            padding: 10px;
+            background-color: white;
+        }
+
+        .form-container input[type=text] {
+            width: 70%;
+            padding: 15px;
+            margin: 5px 0 22px 0;
+            border: none;
+            background: #f1f1f1;
+        }
+
+        .form-container .btn {
+            background-color: #cfbd83;
+            color: white;
+            padding: 16px 20px;
+            border: none;
+            cursor: pointer;
+            width: 50%;
+            margin-bottom:10px;
+            opacity: 0.8;
+            display: flex;
+        }
+
+
+        .addColBtn {
+            border: none;
+            background-color: inherit;
+            padding-right: 7rem;
+            font-size: 16px;
+            cursor: pointer;
+            display: inline-block;
+        }
+
+        .addColBtn:hover {color: blue;}
+
+
+        table {
+            font-family: arial, sans-serif;
+            border-collapse: collapse;
+            width: 50%;
+        }
+
+        td, th {
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+        }
+
+        tr:nth-child(even) {
+        background-color: #dddddd;
+        }
+
+        .tDetails {
+            margin: 20px;
+            width:70%;
+            margin-left: 30rem;
+            position: relative;
+            top: -100px;
+        }
+
+        .insertBtn {
+            background-color: #61623e;
+            color: white;
+            padding: 16px 20px;
+            border: none;
+            cursor: pointer;
+            opacity: 0.8;
+            position: fixed;
+            right: 28px;
+            top: 20px;
+            width: 180px;
+        }
+
+        .container {
+            padding: 20px;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5%  5% ; 
+   
+        }
+
+
+        .close {
+        position: absolute;
+        right: 5px;
+        top: 0;
+        color: #000;
+        }
+
+        
+    </style>
+</head>
+<body>
+    <button class="open-button" onclick="openForm()">Create Table</button>
+    <div class="form-popup" id="myForm">
+        <h2>Create Table</h2>
+        <form action="/create-table" method="post" class="form-container">
+            <label for="tableName">Table Name:</label>
+            <input type="text" id="tableName" name="tableName" required>
+            <label>Add label names:</label>
+            <div id="columns"></div>
+            <button type="button" class="addColBtn" onclick="addColumn()">Add Column</button>
+            <button type="submit" class="btn">Create Table</button>
+            <button type="button" class="btn" onclick="closeForm()">Close</button>
+        </form>
+    </div>
+    <h2>Tables</h2>
+    <ul id="tableList" style="width: 10%;"></ul>
+    <div id="tableDetails" class="tDetails"></div>
+    <div id="tableForm" class="form-popup">
+        <form class="modal-content container">
+        <h3>Table Data</h3>
+        <input />
+        <div id="fieldNames"></div>
+        <button type="button" class="addColBtn" onclick="addFieldNames()">Add field names</button>
+        <button type="submit" style="margin: 20px; background-color: cadetblue;">Add Record</button>
+        <button type="button" class="close" onclick="closeTableForm()">X</button>
+        </form>
+    </div>
+
+    <script>
+        function openForm() {
+            document.getElementById("myForm").style.display = "block";
+        }
+
+        function closeForm() {
+            document.getElementById("myForm").style.display = "none";
+        }
+
+        function openTableForm() {
+            document.getElementById("tableForm").style.display = "block";
+        }
+        function closeTableForm() {
+            document.getElementById("tableForm").style.display = "none";
+        }
+
+        let columnCount = 1;
+
+        function addColumn() {
+            const columnsDiv = document.getElementById('columns');
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.name = `column${columnCount}`;
+            input.placeholder = 'Column Name';
+            columnsDiv.appendChild(input);
+            columnCount++;
+        }
+
+        function addFieldNames() {
+            const columnsDiv = document.getElementById('fieldNames');
+            const input = document.createElement('input');
+            input.name = `column${columnCount}`;
+            columnsDiv.appendChild(input);
+            columnCount++;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('/tables')
+                .then((response) => response.json())
+                .then((data) => {
+                    const tableList = document.getElementById('tableList');
+                    const tableDetails = document.getElementById('tableDetails');
+
+                    data.forEach((table) => {
+                        const li = document.createElement('li');
+                        li.textContent = table;
+                        li.addEventListener('click', () => showTableDetails(table));
+                        tableList.appendChild(li);
+                    });
+
+                    function showTableDetails(tableName) {
+                        fetch(`/table-details/${tableName}`)
+                            .then((response) => response.json())
+                            .then((columns) => {
+                                const detailsHTML = `<h2>${tableName}</h2>
+                                                    <table>      
+                                                        <tr>${columns.map(col => `<th>${col}</th>`).join('')}</tr>       
+                                                    </table>
+                                                    <button class="insertBtn" onclick="openTableForm()">Insert Data</button>`;
+                                tableDetails.innerHTML = detailsHTML;
+                            });
+                    }
+
+                    function showTableForm (tableName){
+                        fetch(`/insert-details/${tableName}`)
+                            .then((response) => response.json())
+                            .then((columns) => {
+                                const detailsHTML = `<form>
+                                                    <h2>${tableName}</h2>
+                                                        
+                                                        ${columns.map(col => `<input type="text">${col}</input>`).join('')}       
+                    
+                                                    <button>Add Record</button>
+                                                    </form>`;
+                                                    
+                                tableDetails.innerHTML = detailsHTML;
+                            });
+                    }
+                });
+
+        })
+    </script>
+    
+</body>
+</html>
