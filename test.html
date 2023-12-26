@@ -125,3 +125,38 @@ var newtextbox ='';
 
 </body>
 </html>
+
+/*
+app.post('/insert-data', async(req, res, next) => {
+  const { tableName, columnValues } = req.body;
+  //const table = tableName.toUpperCase();
+  const values = JSON.parse(columnValues);
+
+  if (!Array.isArray(values)) {
+    return res
+      .status(400)
+      .json({ error: "Invalid columnValues format. Expecting an array." });
+  }
+
+  try {
+    const [columns] = db.query(`DESCRIBE ${tableName}`);
+
+    // discard first element (which is id)
+    const fieldNames = columns.map((column) => column.Field).slice(1);
+
+    const placeholders = Array(values.length).fill("?").join(", ");
+    const insertQuery = `INSERT INTO ${table} (${fieldNames.join(
+      ", "
+    )}) VALUES (${placeholders})`;
+
+    console.log(insertQuery, values);
+
+    const [result] = await db.query(insertQuery, values);
+
+    console.log(`${values.length} rows inserted into ${table}`);
+    res.json({ success: true, result });
+  } catch (error) {
+    console.error("Error inserting data:", error);
+    res.status(500).json({ error: "Failed to insert data" });
+  }
+});*/

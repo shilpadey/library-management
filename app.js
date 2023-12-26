@@ -5,6 +5,8 @@ const bodyParser = require('body-parser');
 const app = express();
 const port = 3000;
 
+app.use(express.json());
+
 app.set('view engine', 'ejs');
 
 // Create MySQL connection
@@ -82,34 +84,34 @@ app.get('/table-details/:tableName', (req, res) => {
   });
 });
 
-app.post('/insert-data/:tableName', async (req, res) => {
-  try {
-      const tableName = req.params.tableName;
-      const { data } = req.body;
+// Handle form submission to insert data
+app.post('/insert-data/:tableName', (req, res) => {
+  const tableName = req.params.tableName;
+  const formData = req.body;
 
-      const connection = await db.getConnection();
-      await connection.beginTransaction();
+  // Extract column names and values from the form data
+  const columns = Object.keys(formData);
+  const values = Object.values(formData);
 
-      try {
-          // Insert data into the table
-          await connection.query(`INSERT INTO ${tableName} VALUES (?)`, [data]);
+  // Construct placeholders for the values
+  const valuePlaceholders = values.map(() => '?').join(', ');
 
-          // Commit the transaction
-          await connection.commit();
+  // Construct the dynamic INSERT INTO query with placeholders
+  const insertDataQuery = `INSERT INTO ${tableName} (${columns.join(', ')}) VALUES (${valuePlaceholders})`;
 
-          console.log('Data inserted into', tableName);
-          res.send('Data inserted successfully');
-      } catch (err) {
-          // Rollback the transaction in case of an error
-          await connection.rollback();
-          throw err;
-      } finally {
-          connection.release();
-      }
-  } catch (err) {
+  console.log(insertDataQuery);
+
+  // Execute the query with values
+  db.query(insertDataQuery, values, (err, result) => {
+    if (err) {
       console.error('Error inserting data:', err);
-      res.send('Error inserting data');
-  }
+      res.json({ success: false, error: err.message });
+    } else {
+      console.log('Data inserted successfully');
+      console.log(result);
+      res.json({ success: true, message: 'Data inserted successfully' });
+    }
+  });
 });
 
 

@@ -141,14 +141,12 @@
     <h2>Tables</h2>
     <ul id="tableList" style="width: 10%;"></ul>
     <div id="tableDetails" class="tDetails"></div>
-    <div id="tableForm" class="form-popup">
-        <form action="/insert-data/:tablename" method="post" class="modal-content container">
-        <h3>Table Data</h3>
-        <input />
-        <div id="fieldNames"></div>
-        <button type="button" class="addColBtn" onclick="addFieldNames()">Add field names</button>
-        <button type="submit" style="margin: 20px; background-color: cadetblue;">Add Record</button>
-        <button type="button" class="close" onclick="closeTableForm()">X</button>
+    <div id="insertForm" class="form-popup">
+        <h2>Insert Data</h2>
+        <form action="/insert-data" method="post" class="form-container" id="insertDataForm">
+            <!-- Column input fields will be dynamically added here -->
+            <button type="submit" class="btn">Add Record</button>
+            <button type="button" class="btn" onclick="closeInsertForm()">Close</button>
         </form>
     </div>
 
@@ -162,10 +160,13 @@
         }
 
         function openTableForm() {
-            document.getElementById("tableForm").style.display = "block";
+            document.getElementById("insertForm").style.display = "block";
+            // Call a function to dynamically generate input fields based on the selected table columns
+            generateInsertFormInputs();
         }
-        function closeTableForm() {
-            document.getElementById("tableForm").style.display = "none";
+
+        function closeInsertForm() {
+            document.getElementById("insertForm").style.display = "none";
         }
 
         let columnCount = 1;
@@ -176,14 +177,6 @@
             input.type = 'text';
             input.name = `column${columnCount}`;
             input.placeholder = 'Column Name';
-            columnsDiv.appendChild(input);
-            columnCount++;
-        }
-
-        function addFieldNames() {
-            const columnsDiv = document.getElementById('fieldNames');
-            const input = document.createElement('input');
-            input.name = `column${columnCount}`;
             columnsDiv.appendChild(input);
             columnCount++;
         }
@@ -202,6 +195,8 @@
                         tableList.appendChild(li);
                     });
 
+                    
+
                     function showTableDetails(tableName) {
                         fetch(`/table-details/${tableName}`)
                             .then((response) => response.json())
@@ -215,24 +210,96 @@
                             });
                     }
 
-                    /*function showTableForm (tableName){
-                        fetch(`/insert-details/${tableName}`)
-                            .then((response) => response.json())
-                            .then((columns) => {
-                                const detailsHTML = `<form>
-                                                    <h2>${tableName}</h2>
-                                                        
-                                                        ${columns.map(col => `<input type="text">${col}</input>`).join('')}       
                     
-                                                    <button>Add Record</button>
-                                                    </form>`;
-                                                    
-                                tableDetails.innerHTML = detailsHTML;
-                            });
-                    }*/
-                });
 
+                    
+                })
         })
+
+        function generateInsertFormInputs() {
+    const insertForm = document.getElementById('insertDataForm');
+    const columnsDiv = document.getElementById('tableDetails');
+    const tableName = columnsDiv.querySelector('h2').textContent;
+
+    fetch(`/table-details/${tableName}`)
+        .then((response) => response.json())
+        .then((columns) => {
+            // Clear previous input fields
+            insertForm.innerHTML = '';
+
+            // Create input fields for each column
+            columns.forEach((col) => {
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.name = col;
+                input.placeholder = col;
+                insertForm.appendChild(input);
+            });
+
+            // Create the "Add Record" button dynamically
+            const addButton = document.createElement('button');
+            addButton.type = 'submit';
+            addButton.className = 'btn';
+            addButton.textContent = 'Add Record';
+            insertForm.appendChild(addButton);
+
+            // Add event listener to handle form submission
+            insertForm.addEventListener('submit', function (event) {
+                event.preventDefault();
+                // Call the function to handle form submission
+
+                handleFormSubmission();
+            });
+
+            // Create the "Close" button dynamically
+            const closeButton = document.createElement('button');
+            closeButton.type = 'button';
+            closeButton.className = 'btn';
+            closeButton.textContent = 'Close';
+            closeButton.addEventListener('click', closeInsertForm);
+            insertForm.appendChild(closeButton);
+        });
+}
+
+function handleFormSubmission() {
+    const insertForm = document.getElementById('insertDataForm');
+    const formData = new FormData(insertForm);
+    const tableName = document.getElementById('tableDetails').querySelector('h2').textContent;
+
+    const columns = [];
+    const values = [];
+
+    formData.forEach((value, key) => {
+        columns.push(key);
+        values.push(`'${value}'`);
+    });
+
+    console.log(formData);
+
+    fetch(`/insert-data/${tableName}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ columns, values }),
+    })
+        .then((response) => response.json())
+        .then((result) => {
+            if (result.success) {
+                console.log('Data inserted successfully');
+                // You can add logic to update the UI or display a success message
+                console.log(result);
+            } else {
+                console.error('Error inserting data:', result.error);
+                // You can add logic to display an error message
+            }
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            // You can add logic to handle other errors
+        });
+}
+       
     </script>
     
 </body>
