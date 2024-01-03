@@ -1,306 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=D, initial-scale=1.0">
-    <title>DATABASE TABLE</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+
+    <title>LIBRARY MANAGEMENT</title>
+
     <style>
-        .open-button {
-            background-color: #555;
-            color: white;
-            padding: 16px 20px;
-            border: none;
-            cursor: pointer;
-            opacity: 0.8;
-            position: fixed;
-            bottom: 23px;
-            right: 28px;
-            width: 280px;
-        }
-        .form-popup {
-            display: none;
-            position: absolute;
-            top: 50px;
-            border: 3px solid #f7f1f1;
-            z-index: 1;
-            margin-left: 150px;
-
-        }
-
-        .form-container {
-            max-width: 500px;
-            padding: 10px;
-            background-color: white;
-        }
-
-        .form-container input[type=text] {
-            width: 70%;
-            padding: 15px;
-            margin: 5px 0 22px 0;
-            border: none;
-            background: #f1f1f1;
-        }
-
-        .form-container .btn {
-            background-color: #cfbd83;
-            color: white;
-            padding: 16px 20px;
-            border: none;
-            cursor: pointer;
-            width: 50%;
-            margin-bottom:10px;
-            opacity: 0.8;
-            display: flex;
-        }
-
-
-        .addColBtn {
-            border: none;
-            background-color: inherit;
-            padding-right: 7rem;
-            font-size: 16px;
-            cursor: pointer;
-            display: inline-block;
-        }
-
-        .addColBtn:hover {color: blue;}
-
-
-        table {
-            font-family: arial, sans-serif;
-            border-collapse: collapse;
-            width: 50%;
-        }
-
-        td, th {
-        border: 1px solid #dddddd;
-        text-align: left;
-        padding: 8px;
-        }
-
-        tr:nth-child(even) {
-        background-color: #dddddd;
-        }
-
-        .tDetails {
-            margin: 20px;
-            width:70%;
-            margin-left: 30rem;
-            position: relative;
-            top: -100px;
-        }
-
-        .insertBtn {
-            background-color: #61623e;
-            color: white;
-            padding: 16px 20px;
-            border: none;
-            cursor: pointer;
-            opacity: 0.8;
-            position: fixed;
-            right: 28px;
-            top: 20px;
-            width: 180px;
-        }
-
-        .container {
-            padding: 20px;
-        }
-
-        .modal-content {
-            background-color: #fefefe;
-            margin: 5%  5% ; 
-   
-        }
-
-
-        .close {
-        position: absolute;
-        right: 5px;
-        top: 0;
-        color: #000;
-        }
-
-        
-    </style>
+      body {
+          background-color: #8dd9fa;
+      }
+  </style>
 </head>
+
 <body>
-    <button class="open-button" onclick="openForm()">Create Table</button>
-    <div class="form-popup" id="myForm">
-        <h2>Create Table</h2>
-        <form action="/create-table" method="post" class="form-container">
-            <label for="tableName">Table Name:</label>
-            <input type="text" id="tableName" name="tableName" required>
-            <label>Add label names:</label>
-            <div id="columns"></div>
-            <button type="button" class="addColBtn" onclick="addColumn()">Add Column</button>
-            <button type="submit" class="btn">Create Table</button>
-            <button type="button" class="btn" onclick="closeForm()">Close</button>
-        </form>
-    </div>
-    <h2>Tables</h2>
-    <ul id="tableList" style="width: 10%;"></ul>
-    <div id="tableDetails" class="tDetails"></div>
-    <div id="insertForm" class="form-popup">
-        <h2>Insert Data</h2>
-        <form action="/insert-data" method="post" class="form-container" id="insertDataForm">
-            <!-- Column input fields will be dynamically added here -->
-            <button type="submit" class="btn">Add Record</button>
-            <button type="button" class="btn" onclick="closeInsertForm()">Close</button>
+    <div class="container mt-5">
+        <form onsubmit="bookIssued(event)">
+            <div class="row mb-3">
+                <div class="col-sm-4">
+                    <label for="title" class="form-label">Book Title</label>
+                    <input type="text" class="form-control" id="title" required />
+                </div>
+            </div>
+
+            <div>
+                <input type="hidden" id="returnBook" value="incomplete" />
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
         </form>
     </div>
 
-    <script>
-        function openForm() {
-            document.getElementById("myForm").style.display = "block";
-        }
+    <div class="container mt-5">
+        <h4>Taken Books</h4>
+        <ul id="bookTaken" class="list-group"></ul>
+    </div>
 
-        function closeForm() {
-            document.getElementById("myForm").style.display = "none";
-        }
+    <div class="container mt-5">
+        <h4>Returned Books</h4>
+        <ul id="bookReturned" class="list-group"></ul>
+    </div>
 
-        function openTableForm() {
-            document.getElementById("insertForm").style.display = "block";
-            // Call a function to dynamically generate input fields based on the selected table columns
-            generateInsertFormInputs();
-        }
-
-        function closeInsertForm() {
-            document.getElementById("insertForm").style.display = "none";
-        }
-
-        let columnCount = 1;
-
-        function addColumn() {
-            const columnsDiv = document.getElementById('columns');
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.name = `column${columnCount}`;
-            input.placeholder = 'Column Name';
-            columnsDiv.appendChild(input);
-            columnCount++;
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            fetch('/tables')
-                .then((response) => response.json())
-                .then((data) => {
-                    const tableList = document.getElementById('tableList');
-                    const tableDetails = document.getElementById('tableDetails');
-
-                    data.forEach((table) => {
-                        const li = document.createElement('li');
-                        li.textContent = table;
-                        li.addEventListener('click', () => showTableDetails(table));
-                        tableList.appendChild(li);
-                    });
-
-                    
-
-                    function showTableDetails(tableName) {
-                        fetch(`/table-details/${tableName}`)
-                            .then((response) => response.json())
-                            .then((columns) => {
-                                const detailsHTML = `<h2>${tableName}</h2>
-                                                    <table>      
-                                                        <tr>${columns.map(col => `<th>${col}</th>`).join('')}</tr>       
-                                                    </table>
-                                                    <button class="insertBtn" onclick="openTableForm()">Insert Data</button>`;
-                                tableDetails.innerHTML = detailsHTML;
-                            });
-                    }
-
-                    
-
-                    
-                })
-        })
-
-        function generateInsertFormInputs() {
-    const insertForm = document.getElementById('insertDataForm');
-    const columnsDiv = document.getElementById('tableDetails');
-    const tableName = columnsDiv.querySelector('h2').textContent;
-
-    fetch(`/table-details/${tableName}`)
-        .then((response) => response.json())
-        .then((columns) => {
-            // Clear previous input fields
-            insertForm.innerHTML = '';
-
-            // Create input fields for each column
-            columns.forEach((col) => {
-                const input = document.createElement('input');
-                input.type = 'text';
-                input.name = col;
-                input.placeholder = col;
-                insertForm.appendChild(input);
-            });
-
-            // Create the "Add Record" button dynamically
-            const addButton = document.createElement('button');
-            addButton.type = 'submit';
-            addButton.className = 'btn';
-            addButton.textContent = 'Add Record';
-            insertForm.appendChild(addButton);
-
-            // Add event listener to handle form submission
-            insertForm.addEventListener('submit', function (event) {
-                event.preventDefault();
-                // Call the function to handle form submission
-
-                handleFormSubmission();
-            });
-
-            // Create the "Close" button dynamically
-            const closeButton = document.createElement('button');
-            closeButton.type = 'button';
-            closeButton.className = 'btn';
-            closeButton.textContent = 'Close';
-            closeButton.addEventListener('click', closeInsertForm);
-            insertForm.appendChild(closeButton);
-        });
-}
-
-function handleFormSubmission() {
-    const insertForm = document.getElementById('insertDataForm');
-    const formData = new FormData(insertForm);
-    const tableName = document.getElementById('tableDetails').querySelector('h2').textContent;
-
-    const columns = [];
-    const values = [];
-
-    formData.forEach((value, key) => {
-        columns.push(key);
-        values.push(`'${value}'`);
-    });
-
-    console.log(formData);
-
-    fetch(`/insert-data/${tableName}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ columns, values }),
-    })
-        .then((response) => response.json())
-        .then((result) => {
-            if (result.success) {
-                console.log('Data inserted successfully');
-                // You can add logic to update the UI or display a success message
-                console.log(result);
-            } else {
-                console.error('Error inserting data:', result.error);
-                // You can add logic to display an error message
-            }
-        })
-        .catch((error) => {
-            console.error('Error:', error);
-            // You can add logic to handle other errors
-        });
-}
-       
-    </script>
-    
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="main.js"></script>
 </body>
+
 </html>
