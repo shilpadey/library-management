@@ -18,10 +18,10 @@ async function bookIssued(event){
     let fine = 0;
 
     let currDate = new Date()
-    let dateIssued = currDate.toISOString();
+    let dateIssued = currDate.toUTCString();
     currDate.setHours(currDate.getHours()+1);
 
-    let returnDate = currDate.toISOString();
+    let returnDate = currDate.toUTCString();
     let returnBook = document.getElementById('returnBook').value;
 
     let obj = {
@@ -86,10 +86,10 @@ async function displayBooks() {
 function showOnScreen(obj, bookTaken, bookReturned) {
     const bookStatus = obj.returnBook === 'incomplete' ? 'taken' : 'returned';
 
-    let currentDate = new Date().toISOString();
+    let currentDate = new Date().toUTCString();
 
     const childNode = document.createElement('li');
-    childNode.textContent = `${obj.title}  ${obj.dateIssued}  ${obj.returnDate}  ${obj.fine}`;
+    childNode.textContent = `${obj.title}    ${obj.dateIssued}    ${obj.returnDate}    ${obj.fine} `;
 
     let returnBtn = document.createElement('input');
     returnBtn.value = 'Return Book';
@@ -117,7 +117,7 @@ function showOnScreen(obj, bookTaken, bookReturned) {
                 bookTaken.removeChild(childNode);
                 // Display the book immediately in the 'bookReturned' list
                 let childNode2 = document.createElement('li');
-                childNode2.textContent = `${obj.title} ${fine > 0 ? 'Fine: ' + fine + ' rs' : 'No fine'}`;
+                childNode2.textContent = `${obj.title}     ${fine > 0 ? 'Fine: ' + fine + ' rs' : 'No fine'}`;
                 bookReturned.appendChild(childNode2);
             } catch (error) {
                 console.log("Error updating database:", error);
@@ -126,8 +126,23 @@ function showOnScreen(obj, bookTaken, bookReturned) {
     } else {
         // If the book is already returned, display it in the 'bookReturned' list
         let childNode2 = document.createElement('li');
-        childNode2.textContent = `${obj.title} ${obj.fine > 0 ? 'Fine: ' + obj.fine + ' rs' : 'No fine'}`;
+        childNode2.textContent = `${obj.title}     ${obj.fine > 0 ? 'Fine: ' + obj.fine + ' rs' : 'No fine'}`;
         bookReturned.appendChild(childNode2);
     }
 }
 
+// Helper function to add a book to the 'bookReturned' table
+function addBookToReturnedTable(bookReturned, title, fine) {
+    let tableRow = document.createElement('tr');
+
+    let titleCell = document.createElement('td');
+    titleCell.textContent = title;
+
+    let fineCell = document.createElement('td');
+    fineCell.textContent = fine > 0 ? `Fine: ${fine} rs` : 'No fine';
+
+    tableRow.appendChild(titleCell);
+    tableRow.appendChild(fineCell);
+
+    bookReturned.appendChild(tableRow);
+}
